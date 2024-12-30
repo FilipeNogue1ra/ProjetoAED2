@@ -137,9 +137,34 @@ Graph* GraphCreateTranspose(const Graph* g) {
   assert(g->isDigraph);
   assert(g->isComplete == 0);
 
-  // COMPLETE THE CODE
+  printf("Creating transpose graph...\n");
 
-  return NULL;
+  // Criar um novo grafo com o mesmo número de vértices
+  Graph* transpose = GraphCreate(g->numVertices, g->isDigraph, g->isWeighted);
+
+  printf("Transpose graph created with %u vertices.\n", g->numVertices);
+
+  // Iterar sobre todos os vértices do grafo original
+  ListMoveToHead(g->verticesList);
+  for (unsigned int i = 0; i < g->numVertices; ListMoveToNext(g->verticesList), i++) {
+    struct _Vertex* v = ListGetCurrentItem(g->verticesList);
+    printf("Processing vertex %u...\n", v->id);
+    ListMoveToHead(v->edgesList);
+    for (unsigned int j = 0; j < ListGetSize(v->edgesList); ListMoveToNext(v->edgesList), j++) {
+      struct _Edge* e = ListGetCurrentItem(v->edgesList);
+      printf("Adding edge from %u to %u...\n", e->adjVertex, v->id);
+      // Adicionar a aresta invertida no grafo transposto
+      if (g->isWeighted) {
+        GraphAddWeightedEdge(transpose, e->adjVertex, v->id, e->weight);
+      } else {
+        GraphAddEdge(transpose, e->adjVertex, v->id);
+      }
+    }
+  }
+
+  printf("Transpose graph created successfully.\n");
+
+  return transpose;
 }
 
 void GraphDestroy(Graph** p) {

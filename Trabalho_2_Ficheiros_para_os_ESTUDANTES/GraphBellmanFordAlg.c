@@ -35,38 +35,72 @@ struct _GraphBellmanFordAlg {
 
 GraphBellmanFordAlg* GraphBellmanFordAlgExecute(Graph* g,
                                                 unsigned int startVertex) {
-  assert(g != NULL);
-  assert(startVertex < GraphGetNumVertices(g));
-  assert(GraphIsWeighted(g) == 0);
+  assert(g != NULL);  // Verifica se o grafo não é nulo
+  assert(startVertex < GraphGetNumVertices(g));  // Verifica se o vértice inicial é válido
+  assert(GraphIsWeighted(g) == 0);  // Verifica se o grafo não possui pesos nas arestas
 
   GraphBellmanFordAlg* result =
       (GraphBellmanFordAlg*)malloc(sizeof(struct _GraphBellmanFordAlg));
-  assert(result != NULL);
+  assert(result != NULL);  // Verifica se a alocação de memória foi bem-sucedida
 
-  // Given graph and start vertex for the shortest-paths
+  // Grafo dado e vértice inicial para os caminhos mais curtos
   result->graph = g;
   result->startVertex = startVertex;
 
-  unsigned int numVertices = GraphGetNumVertices(g);
+  unsigned int numVertices = GraphGetNumVertices(g);  // Obtém o número de vértices do grafo
 
-  //
-  // TO BE COMPLETED !!
-  //
-  // CREATE AND INITIALIZE
-  // result->marked
-  // result->distance
-  // result->predecessor
-  //
+  // Aloca e inicializa os arrays
+  result->marked = (unsigned int*)calloc(numVertices, sizeof(unsigned int));
+  result->distance = (int*)malloc(numVertices * sizeof(int));
+  result->predecessor = (int*)malloc(numVertices * sizeof(int));
 
-  // Mark all vertices as not yet visited, i.e., ZERO
-  
-  // No vertex has (yet) a (valid) predecessor
-  
-  // No vertex has (yet) a (valid) distance to the start vertex
-  
-  // THE ALGORTIHM TO BUILD THE SHORTEST-PATHS TREE
+  for (unsigned int i = 0; i < numVertices; i++) {
+    result->distance[i] = -1;  // -1 representa infinito
+    result->predecessor[i] = -1;  // Nenhum predecessor inicialmente
+  }
 
-  return NULL;
+  // Inicializa o vértice inicial
+  result->distance[startVertex] = 0;
+  result->marked[startVertex] = 1;
+
+  // Algoritmo de Bellman-Ford
+  for (unsigned int i = 1; i < numVertices; i++) { // V - 1 iterações
+    for (unsigned int v = 0; v < numVertices; v++) {
+      if (result->distance[v] != -1) { // Considera apenas vértices alcançáveis
+        int* neighbors = GraphGetAdjacentsTo(g, v);
+        int numNeighbors = neighbors[0]; // Primeiro elemento é a contagem
+        for (int j = 1; j <= numNeighbors; j++) {
+          int w = neighbors[j];
+          if (result->distance[w] == -1 || result->distance[w] > result->distance[v] + 1) {
+            result->distance[w] = result->distance[v] + 1;
+            result->predecessor[w] = v;
+            result->marked[w] = 1;
+          }
+        }
+        free(neighbors); // Libera a lista de adjacência
+      }
+    }
+  }
+
+  // Verifica ciclos de peso negativo (não necessário para grafos sem peso, mas incluído para completude)
+  for (unsigned int v = 0; v < numVertices; v++) {
+    if (result->distance[v] != -1) {
+      int* neighbors = GraphGetAdjacentsTo(g, v);
+      int numNeighbors = neighbors[0];
+      for (int j = 1; j <= numNeighbors; j++) {
+        int w = neighbors[j];
+        if (result->distance[w] > result->distance[v] + 1) {
+          printf("O grafo contém um ciclo de peso negativo.\n");
+          free(neighbors);
+          GraphBellmanFordAlgDestroy(&result);
+          return NULL;
+        }
+      }
+      free(neighbors);
+    }
+  }
+
+  return result;  // Retorna a estrutura contendo os resultados do algoritmo de Bellman-Ford
 }
 
 void GraphBellmanFordAlgDestroy(GraphBellmanFordAlg** p) {

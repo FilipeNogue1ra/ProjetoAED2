@@ -27,11 +27,24 @@
 // Return the computed transitive closure as a directed graph
 // Use the Bellman-Ford algorithm
 Graph* GraphComputeTransitiveClosure(Graph* g) {
-  assert(g != NULL);
-  assert(GraphIsDigraph(g));
-  assert(GraphIsWeighted(g) == 0);
+  assert(g != NULL);  // Verifica se o grafo não é nulo
+  assert(GraphIsDigraph(g));  // Verifica se o grafo é orientado
+  assert(GraphIsWeighted(g) == 0);  // Verifica se o grafo não possui pesos nas arestas
 
-  // COMPLETE THE CODE
+  unsigned int numVertices = GraphGetNumVertices(g);  // Obtém o número de vértices do grafo
+  Graph* transitiveClosure = GraphCreate(numVertices, 1, 0);  // Cria um novo grafo para armazenar o fecho transitivo
 
-  return NULL;
+  for (unsigned int v = 0; v < numVertices; v++) {
+    GraphBellmanFordAlg* bfResult = GraphBellmanFordAlgExecute(g, v);  // Executa o algoritmo de Bellman-Ford para o vértice v
+
+    for (unsigned int w = 0; w < numVertices; w++) {
+      if (v != w && GraphBellmanFordAlgReached(bfResult, w)) {  // Verifica se w é alcançável a partir de v e se v != w
+        GraphAddEdge(transitiveClosure, v, w);  // Adiciona uma aresta de v para w no fecho transitivo
+      }
+    }
+
+    GraphBellmanFordAlgDestroy(&bfResult);  // Libera a memória alocada para o resultado do Bellman-Ford
+  }
+
+  return transitiveClosure;  // Retorna o grafo contendo o fecho transitivo
 }

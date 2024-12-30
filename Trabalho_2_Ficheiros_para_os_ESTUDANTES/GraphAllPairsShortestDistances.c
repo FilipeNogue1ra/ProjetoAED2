@@ -31,13 +31,32 @@ struct _GraphAllPairsShortestDistances {
 
 // Allocate memory and initialize the distance matrix
 // Compute the distances between vertices by running the Bellman-Ford algorithm
-GraphAllPairsShortestDistances* GraphAllPairsShortestDistancesExecute(
-    Graph* g) {
-  assert(g != NULL);
+GraphAllPairsShortestDistances* GraphAllPairsShortestDistancesExecute(Graph* g) {
+  assert(g != NULL);  // Verifica se o grafo não é nulo
 
-  // COMPLETE THE CODE
+  unsigned int numVertices = GraphGetNumVertices(g);  // Obtém o número de vértices do grafo
+  GraphAllPairsShortestDistances* result = (GraphAllPairsShortestDistances*)malloc(sizeof(GraphAllPairsShortestDistances));
+  result->graph = g;
+  result->distance = (int**)malloc(numVertices * sizeof(int*));  // Aloca memória para a matriz de distâncias
 
-  return NULL;
+  for (unsigned int i = 0; i < numVertices; i++) {
+    result->distance[i] = (int*)malloc(numVertices * sizeof(int));  // Aloca memória para cada linha da matriz de distâncias
+    for (unsigned int j = 0; j < numVertices; j++) {
+      result->distance[i][j] = -1;  // Inicializa as distâncias com -1 (indicando que não há caminho)
+    }
+  }
+
+  for (unsigned int v = 0; v < numVertices; v++) {
+    GraphBellmanFordAlg* bfResult = GraphBellmanFordAlgExecute(g, v);  // Executa o algoritmo de Bellman-Ford para o vértice v
+    for (unsigned int w = 0; w < numVertices; w++) {
+      if (GraphBellmanFordAlgReached(bfResult, w)) {  // Verifica se o vértice w é alcançável a partir de v
+        result->distance[v][w] = GraphBellmanFordAlgDistance(bfResult, w);  // Armazena a distância de v para w
+      }
+    }
+    GraphBellmanFordAlgDestroy(&bfResult);  // Libera a memória alocada para o resultado do Bellman-Ford
+  }
+
+  return result;  // Retorna a estrutura contendo a matriz de distâncias
 }
 
 void GraphAllPairsShortestDistancesDestroy(GraphAllPairsShortestDistances** p) {
